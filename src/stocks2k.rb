@@ -2,6 +2,7 @@
 
 # Only calculate one per day
 
+require 'date'
 require 'json'
 require 'csv'
 require 'open-uri'
@@ -16,6 +17,8 @@ kafka_port = ENV['KAFKA_PORT'].nil? ? "9092" : ENV['KAFKA_PORT']
 kafka_topic = ENV['KAFKA_TOPIC'].nil? ? "itrading" : ENV['KAFKA_TOPIC']
 kclient = Kafka.new(seed_brokers: ["#{kafka_broker}:#{kafka_port}"], client_id: "quandl2k")
 iforge_client = ForexDataClient.new(iforge_apikey)
+Quandl::ApiConfig.api_key = ENV['QUANDL_APIKEY'].nil? ? nil : ENV['QUANDL_APIKEY']
+#Quandl::ApiConfig.api_version = '2015-04-09'
 
 while true
 	# Petroleo, barril de brent
@@ -42,7 +45,7 @@ while true
 			"metric" => "GOLD_AM",
 			"value" => data.values.first.euro_am
 			}
-	kclient.deliver_message("#{itrading.to_json}",topic: kafka_topic)
+	kclient.deliver_message("#{itrading.to_json}",topic: kafka_topic) unless data.values.first.euro_am.nil?
 	itrading =	{
 			"url" => "https://www.quandl.com/data/LBMA/GOLD-Gold-Price-London-Fixing",
 			"sensor" => "quandl",
@@ -50,7 +53,7 @@ while true
 			"metric" => "GOLD_PM",
 			"value" => data.values.first.euro_pm
 			}
-	kclient.deliver_message("#{itrading.to_json}",topic: kafka_topic)
+	kclient.deliver_message("#{itrading.to_json}",topic: kafka_topic) unless data.values.first.euro_pm.nil?
 
 	
 	# Plata, LBMA/SILVER
@@ -86,6 +89,19 @@ while true
 			"metric" => quote["symbol"],
 			"value" => quote["price"]
 			}
+		kclient.deliver_message("#{itrading.to_json}",topic: kafka_topic)
+	end
+
+	# EURIBOR
+	euribor_csv = CSV.new(open("https://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EURIBOR_#{Time.now.year}.csv"), :headers => :first_row)
+	euribor_csv.each do |row|
+		itrading = {
+			"url" => "https://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EURIBOR_#{Time.now.year}.csv",
+			"sensor" => "emmi",
+			"timestamp" => Date.parse(euribor_csv.headers.last).to_time.to_i,
+			"metric" => "euribor_#{row[0]}",
+			"value" => row[euribor_csv.headers.last]
+		}
 		kclient.deliver_message("#{itrading.to_json}",topic: kafka_topic)
 	end
 
