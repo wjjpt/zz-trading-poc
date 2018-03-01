@@ -29,7 +29,7 @@ while true
 			"url" => "https://www.quandl.com/data/EIA/PET_RBRTE_D-Europe-Brent-Spot-Price-FOB-Daily",
 			"sensor" => "quandl",
 			"timestamp" => data.values.first.date.to_time.to_i,
-			"metic" => "PET_RBRTE_D",
+			"metric" => "PET_RBRTE_D",
 			"value" => data.values.first.value
 			}
 	kclient.deliver_message("#{itrading.to_json}",topic: kafka_topic)

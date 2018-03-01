@@ -20,6 +20,7 @@ WORKDIR /usr/app
 
 COPY Gemfile /usr/app/
 COPY Gemfile.lock /usr/app/
-RUN bundle install
+RUN bundle install && \
+    rm -rf /usr/include/*
 
 COPY . /usr/app
