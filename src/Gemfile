@@ -1,0 +1,8 @@
+source 'https://rubygems.org'
+gem 'http'
+gem 'json'
+gem 'quandl'
+gem 'csv'
+gem 'date'
+gem 'forex_quotes'
+gem 'ruby-kafka'
