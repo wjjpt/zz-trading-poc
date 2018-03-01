@@ -80,7 +80,7 @@ while true
 	quotes.each do |quote|
 		# {"symbol"=>"EURUSD", "price"=>1.23176, "bid"=>1.23176, "ask"=>1.23176, "timestamp"=>1519735980}
 		itrading = {
-			"url" => "http://https://forex.1forge.com/1.0.3/quotes?pairs=#{quote['symbol']}&api_key=APIKEY",
+			"url" => "https://forex.1forge.com/1.0.3/quotes?pairs=#{quote["symbol"]}&api_key=APIKEY",
 			"sensor" => "1forge",
 			"timestamp" => quote["timestamp"],
 			"metric" => quote["symbol"],
