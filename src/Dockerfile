@@ -1,26 +1,23 @@
-FROM alpine:3.7 
+FROM alpine:3.7 as builder
 MAINTAINER Juan J. Prieto <jjptapia@gmail.com>
 
-CMD ["/usr/app/stocks2k.rb"]
 
 ENV BUILD_PACKAGES bash curl-dev ruby-dev build-base
-ENV RUBY_PACKAGES ruby-bundler
-#ENV RUBY_PACKAGES ruby ruby-io-console ruby-bundler
+ENV RUBY_PACKAGES ruby ruby-bundler
 
-# Update and install all of the required packages.
-# At the end, remove the apk cache
-RUN apk update && \
-    apk upgrade && \
-    apk add $BUILD_PACKAGES && \
-    apk add $RUBY_PACKAGES && \
-    rm -rf /var/cache/apk/* && \
+RUN apk add --no-cache $BUILD_PACKAGES $RUBY_PACKAGES && \
     mkdir /usr/app 
 
 WORKDIR /usr/app
 
 COPY Gemfile /usr/app/
 COPY Gemfile.lock /usr/app/
-RUN bundle install && \
-    rm -rf /usr/include/*
+RUN bundle install
 
-COPY . /usr/app
+FROM alpine:3.7
+
+RUN apk add --no-cache ruby
+
+COPY --from=builder /usr/lib/ruby /usr/lib/ruby
+COPY ./stocks2k.rb /usr/local/bin
+ENTRYPOINT ["/usr/local/bin/stocks2k.rb"]
